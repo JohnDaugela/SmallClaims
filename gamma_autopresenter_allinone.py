@@ -49,22 +49,23 @@ def read_gamma_slides(gamma_url):
         print("Loading presentation...")
         page.goto(gamma_url)
 
-        print("Waiting for page to load (5 seconds)...")
-        time.sleep(5)
+        print("Waiting for page to load (10 seconds)...")
+        time.sleep(10)
 
         print("Reading all slides from HTML...")
 
-        # Extract all slides from DOM
+        # Extract all slides from DOM using [data-card-id] selector
         slides_data = page.evaluate("""() => {
-            const sections = document.querySelectorAll('section');
+            const cards = document.querySelectorAll('[data-card-id]');
             const slides = [];
 
-            sections.forEach((section, index) => {
-                const text = section.innerText.trim();
+            cards.forEach((card, index) => {
+                const text = card.innerText.trim();
 
                 if (text && text.length > 0) {
                     slides.push({
                         slide_number: index + 1,
+                        card_id: card.getAttribute('data-card-id'),
                         text_content: text,
                         text_length: text.length,
                         preview: text.substring(0, 100)
@@ -250,31 +251,56 @@ def run_automated_presentation(gamma_url, timeline, audio_file):
     print("\nOPENING GAMMA PRESENTATION...")
     print("When the browser opens, you have 5 seconds to get ready.\n")
 
+    # Ensure URL has mode=present parameter
+    if '?mode=present' not in gamma_url:
+        if '?mode=' in gamma_url:
+            gamma_url = gamma_url.replace('?mode=doc', '?mode=present')
+        elif '?' in gamma_url:
+            gamma_url = gamma_url + '&mode=present'
+        else:
+            gamma_url = gamma_url + '?mode=present'
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False, args=['--start-maximized'])
         context = browser.new_context(no_viewport=True)
         page = context.new_page()
 
-        # Open GAMMA
+        # Open GAMMA in presentation mode
+        print("Opening in presentation mode...")
         page.goto(gamma_url)
-        time.sleep(5)
+        time.sleep(10)
 
-        # Countdown
-        for i in range(5, 0, -1):
-            print(f"   Starting in {i}...")
-            time.sleep(1)
+        # Activate spotlight mode by clicking the button
+        print("💡 Activating spotlight mode...")
+        try:
+            spotlight_button = page.locator("button:has-text('Spotlight')").first
+            spotlight_button.click()
+            print("   ✅ Clicked Spotlight button!")
+            time.sleep(3)
+        except Exception as e:
+            print(f"   ⚠️  Button click failed: {e}")
+            print("   Trying 'S' key as backup...")
+            page.keyboard.press('s')
+            time.sleep(3)
 
-        print("\n🎬 Entering presentation mode...")
-        page.keyboard.down('Control')
-        page.keyboard.down('Shift')
-        page.keyboard.press('Enter')
-        page.keyboard.up('Shift')
-        page.keyboard.up('Control')
-        time.sleep(5)
-
-        print("💡 Entering spotlight mode...")
-        page.keyboard.press('s')
-        time.sleep(3)
+        # Activate fullscreen mode
+        print("🖥️  Activating fullscreen mode...")
+        try:
+            # Try clicking the fullscreen button first
+            fullscreen_button = page.locator("button[aria-label='Enter full screen']").first
+            fullscreen_button.click()
+            print("   ✅ Clicked fullscreen button!")
+            time.sleep(3)
+        except Exception as e:
+            print(f"   ⚠️  Button click failed: {e}")
+            print("   Trying JavaScript API...")
+            try:
+                page.evaluate("document.documentElement.requestFullscreen()")
+                print("   ✅ Fullscreen activated via JavaScript!")
+                time.sleep(3)
+            except Exception as e2:
+                print(f"   ⚠️  JavaScript also failed: {e2}")
+                print("   Continuing without fullscreen...")
 
         print("\n🎵 Starting audio and automated presentation!\n")
 
@@ -370,7 +396,7 @@ def main():
 
     gamma_url = input("Enter GAMMA presentation URL: ").strip()
     if not gamma_url:
-        gamma_url = "https://gamma.app/docs/Timing-Is-Everything-rv9g99f3t56viu5?mode=doc"
+        gamma_url = "https://gamma.app/docs/Timing-Is-Everything-rv9g99f3t56viu5?mode=present"
         print(f"   Using default: {gamma_url}")
 
     # For now, just test reading slides
