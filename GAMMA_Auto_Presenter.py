@@ -6,8 +6,8 @@ GAMMA AUTO PRESENTER - Standalone Version
 
 WHAT THIS DOES:
 - Automatically controls your GAMMA presentation
+- Presses 'Ctrl+Shift+Enter' to enter presentation mode
 - Presses 'S' for spotlight mode
-- Presses 'F11' for fullscreen
 - Presses spacebar at regular intervals to advance slides
 
 SETUP (One-time only):
@@ -74,8 +74,8 @@ def print_instructions():
     print("4. You'll have 5 seconds to click on the browser window")
     print()
     print("5. The automation will then:")
+    print("   • Press 'Ctrl+Shift+Enter' to enter presentation mode")
     print("   • Press 'S' to enter spotlight mode")
-    print("   • Press 'F11' to go fullscreen")
     print("   • Press spacebar every 3 seconds to advance")
     print("-" * 70)
 
@@ -95,15 +95,15 @@ def run_automation():
     # Give user time to switch to browser
     countdown(COUNTDOWN_SECONDS)
 
+    # Press Ctrl+Shift+Enter for presentation mode
+    print("🎬 Pressing 'Ctrl+Shift+Enter' to enter presentation mode...")
+    pyautogui.hotkey('ctrl', 'shift', 'enter')
+    time.sleep(2.5)  # Give it time to load presentation mode
+
     # Press 'S' for spotlight mode
     print("💡 Pressing 'S' for spotlight mode...")
     pyautogui.press('s')
-    time.sleep(1.5)
-
-    # Press F11 for fullscreen
-    print("🖥️  Pressing 'F11' for fullscreen...")
-    pyautogui.press('f11')
-    time.sleep(1.5)
+    time.sleep(2.5)  # Give it time to load spotlight mode
 
     # Click through presentation
     print(f"\n▶️  Now clicking through presentation...")
@@ -119,8 +119,8 @@ def run_automation():
     print("\n✅ AUTOMATION COMPLETE!")
     print()
     print("To exit:")
-    print("   • Press ESC to exit fullscreen")
-    print("   • Press 'S' again to exit spotlight mode")
+    print("   • Press ESC to exit presentation mode")
+    print("   • Press 'S' again to exit spotlight mode (if needed)")
 
 def main():
     """Main function"""
