@@ -17,9 +17,13 @@ def test_gamma_reading():
     print(f"\nOpening: {GAMMA_URL}\n")
 
     with sync_playwright() as p:
-        # Launch browser
-        browser = p.chromium.launch(headless=False)
-        page = browser.new_page()
+        # Launch browser with maximized window
+        browser = p.chromium.launch(
+            headless=False,
+            args=['--start-maximized']
+        )
+        context = browser.new_context(no_viewport=True)
+        page = context.new_page()
 
         # Open GAMMA
         print("Opening GAMMA presentation...")
@@ -28,11 +32,7 @@ def test_gamma_reading():
         print("Waiting for presentation to load (5 seconds)...")
         time.sleep(5)
 
-        # Maximize window
-        print("Maximizing window...")
-        page.set_viewport_size({"width": 1920, "height": 1080})
-
-        print("Waiting 2 seconds...")
+        print("Window is maximized. Waiting 2 seconds...")
         time.sleep(2)
 
         # Enter presentation mode
