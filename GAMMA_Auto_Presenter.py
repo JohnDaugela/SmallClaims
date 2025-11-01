@@ -50,7 +50,7 @@ except ImportError:
 
 # Configuration
 GAMMA_URL = "https://gamma.app/docs/Timing-Is-Everything-rv9g99f3t56viu5?mode=doc"
-NUMBER_OF_CLICKS = 15  # How many times to press spacebar
+NUMBER_OF_CLICKS = 17  # How many times to press spacebar
 SECONDS_BETWEEN_CLICKS = 3  # How long to wait between each spacebar press
 COUNTDOWN_SECONDS = 5  # How long you have to switch to the browser
 
