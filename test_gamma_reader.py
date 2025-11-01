@@ -22,21 +22,32 @@ def test_gamma_reading():
         page = browser.new_page()
 
         # Open GAMMA
+        print("Opening GAMMA presentation...")
         page.goto(GAMMA_URL)
-        time.sleep(3)
 
-        print("Browser opened. Starting in 3 seconds...\n")
-        time.sleep(3)
+        print("Waiting for presentation to load (5 seconds)...")
+        time.sleep(5)
+
+        # Maximize window
+        print("Maximizing window...")
+        page.set_viewport_size({"width": 1920, "height": 1080})
+
+        print("Waiting 2 seconds...")
+        time.sleep(2)
 
         # Enter presentation mode
-        print("Entering presentation mode (Ctrl+Shift+Enter)...")
+        print("Pressing Ctrl+Shift+Enter for presentation mode...")
         page.keyboard.press('Control+Shift+Enter')
-        time.sleep(2.5)
+
+        print("Waiting 5 seconds for presentation mode to load...")
+        time.sleep(5)
 
         # Enter spotlight mode
-        print("Entering spotlight mode (S)...\n")
+        print("Pressing 'S' for spotlight mode...")
         page.keyboard.press('s')
-        time.sleep(2.5)
+
+        print("Waiting 3 seconds for spotlight mode to load...\n")
+        time.sleep(3)
 
         print("="*70)
         print("READING SLIDES")
