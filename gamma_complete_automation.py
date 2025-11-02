@@ -46,27 +46,60 @@ def run_gamma_automation():
             page.keyboard.press('s')
             time.sleep(3)
 
-        # Step 3: Activate Fullscreen
+        # Step 3: Activate Fullscreen - Try multiple methods
         print("\n[3] Activating Fullscreen...")
-        print("    Method 1: Clicking fullscreen button...")
 
+        fullscreen_success = False
+
+        # Method 1: Find and click the fullscreen button
         try:
-            # Click button with aria-label "Enter full screen"
-            fullscreen_button = page.locator("button[aria-label='Enter full screen']").first
-            fullscreen_button.click()
-            print("    ✅ Clicked fullscreen button!")
-            time.sleep(3)
+            print("    Method 1: Looking for fullscreen button...")
+            # Try multiple selectors
+            selectors = [
+                "button[aria-label='Enter full screen']",
+                "button[aria-label*='full screen' i]",
+                "button[aria-label*='fullscreen' i]"
+            ]
+
+            for selector in selectors:
+                try:
+                    btn = page.locator(selector).first
+                    if btn.count() > 0:
+                        btn.click(timeout=2000)
+                        print(f"    ✅ Clicked button with selector: {selector}")
+                        time.sleep(3)
+                        fullscreen_success = True
+                        break
+                except:
+                    continue
+
         except Exception as e:
-            print(f"    ⚠️  Button click failed: {e}")
-            print("    Method 2: Using JavaScript API...")
+            print(f"    ⚠️  Button approach failed: {e}")
+
+        # Method 2: JavaScript API on the presentation container
+        if not fullscreen_success:
             try:
-                page.evaluate("document.documentElement.requestFullscreen()")
-                print("    ✅ Fullscreen activated via JavaScript!")
+                print("    Method 2: JavaScript requestFullscreen on body...")
+                page.evaluate("""
+                    document.body.requestFullscreen()
+                        .then(() => console.log('Fullscreen success'))
+                        .catch(err => console.log('Fullscreen error:', err));
+                """)
                 time.sleep(3)
-            except Exception as e2:
-                print(f"    ⚠️  JavaScript also failed: {e2}")
-                print("    (Note: 'F' key doesn't work for GAMMA fullscreen)")
+                fullscreen_success = True
+                print("    ✅ JavaScript fullscreen requested!")
+            except Exception as e:
+                print(f"    ⚠️  JavaScript failed: {e}")
+
+        # Method 3: F11 via keyboard (browser fullscreen as fallback)
+        if not fullscreen_success:
+            try:
+                print("    Method 3: F11 key (browser fullscreen)...")
+                page.keyboard.press('F11')
                 time.sleep(3)
+                print("    ✅ F11 pressed (browser fullscreen)")
+            except Exception as e:
+                print(f"    ⚠️  F11 failed: {e}")
 
         # Verify states
         print("\n[4] Verifying modes...")
@@ -81,10 +114,6 @@ def run_gamma_automation():
         print(f"    Fullscreen: {states['isFullscreen']}")
         print(f"    Spotlight active: {states['hasSpotlight']}")
         print(f"    Body classes: {states['bodyClasses']}")
-
-        # Take screenshot
-        page.screenshot(path='gamma_fully_automated.png')
-        print("\n📸 Screenshot saved: gamma_fully_automated.png")
 
         # Step 4: Read slides
         print("\n[5] Reading all slides...")
@@ -130,7 +159,7 @@ def run_gamma_automation():
         print("\n💾 Data saved to: gamma_automation_complete.json")
 
         print("\n" + "="*70)
-        print("✅ COMPLETE AUTOMATION SUCCESS!")
+        print("✅ SETUP COMPLETE!")
         print("="*70)
         print("\nModes activated:")
         print(f"  ✅ Presentation mode (?mode=present)")
@@ -138,16 +167,33 @@ def run_gamma_automation():
         print(f"  {'✅' if states['isFullscreen'] else '⚠️ '} Fullscreen mode")
         print(f"  ✅ Read {len(slides_data)} slides from HTML")
 
-        print("\n🎯 READY FOR AUDIO AUTOMATION!")
-        print("   Next step: Add your audio file and script for full sync")
+        # Step 5: Automatically click through all slides
+        print("\n" + "="*70)
+        print("[6] AUTOMATIC PRESENTATION - CLICKING THROUGH SLIDES")
+        print("="*70)
+        print(f"\nWill advance through {len(slides_data)} slides")
+        print("2 seconds between each spacebar press\n")
 
-        print("\nBrowser will stay open for 20 seconds...")
-        print("You can manually:")
-        print("  - Press SPACEBAR to advance slides")
-        print("  - Press ESC to exit fullscreen")
-        print("  - Press 'S' to toggle spotlight")
+        time.sleep(3)
+        print("🎬 Starting automatic presentation NOW!\n")
 
-        time.sleep(20)
+        for i in range(len(slides_data)):
+            print(f"   [{i+1}/{len(slides_data)}] Pressing SPACEBAR... ", end='', flush=True)
+            page.keyboard.press('Space')
+            print("✅")
+
+            if i < len(slides_data) - 1:  # Don't wait after last slide
+                time.sleep(2)
+
+        print("\n" + "="*70)
+        print("✅ PRESENTATION COMPLETE!")
+        print("="*70)
+        print(f"Advanced through all {len(slides_data)} slides automatically!")
+
+        print("\nBrowser will stay open for 10 seconds...")
+        print("Press ESC to exit fullscreen if needed")
+
+        time.sleep(10)
 
         browser.close()
 
