@@ -76,7 +76,12 @@ class StoryboardStudio:
         self.is_previewing = False
         self.preview_start_time = 0
 
-        pygame.mixer.init()
+        self.audio_available = False
+        try:
+            pygame.mixer.init()
+            self.audio_available = True
+        except Exception:
+            pass
 
         self.setup_styles()
         self.create_menu_bar()
@@ -617,8 +622,9 @@ class StoryboardStudio:
                                          script_preview
                                      ))
 
-        pygame.mixer.music.load(audio_file)
-        pygame.mixer.music.play()
+        if self.audio_available:
+            pygame.mixer.music.load(audio_file)
+            pygame.mixer.music.play()
 
         self.is_previewing = True
         self.preview_start_time = time.time()
@@ -631,18 +637,21 @@ class StoryboardStudio:
 
     def preview_pause(self):
         if self.is_previewing:
-            pygame.mixer.music.pause()
+            if self.audio_available:
+                pygame.mixer.music.pause()
             self.is_previewing = False
             self.pause_btn.config(text="▶ Resume")
         else:
-            pygame.mixer.music.unpause()
+            if self.audio_available:
+                pygame.mixer.music.unpause()
             self.is_previewing = True
             self.pause_btn.config(text="⏸ Pause")
             self.update_preview()
 
     def preview_stop(self):
         self.is_previewing = False
-        pygame.mixer.music.stop()
+        if self.audio_available:
+            pygame.mixer.music.stop()
         self.play_btn.config(state='normal')
         self.pause_btn.config(state='disabled', text="⏸ Pause")
         self.stop_btn.config(state='disabled')
@@ -655,7 +664,12 @@ class StoryboardStudio:
         if not self.is_previewing:
             return
 
-        current_time = pygame.mixer.music.get_pos() / 1000.0
+        if self.audio_available:
+            current_time = pygame.mixer.music.get_pos() / 1000.0
+            if current_time < 0:
+                current_time = 0
+        else:
+            current_time = time.time() - self.preview_start_time
         if current_time < 0:
             current_time = 0
 
@@ -705,8 +719,14 @@ class StoryboardStudio:
                     pass
 
         # Check if audio finished
-        if not pygame.mixer.music.get_busy():
+        if self.audio_available and not pygame.mixer.music.get_busy():
             self.preview_stop()
+            return
+        elif not self.audio_available:
+            audio_dur = self.storyboard.get('audio_duration', 0)
+            if current_time >= audio_dur > 0:
+                self.preview_stop()
+                return
             return
 
         self.root.after(100, self.update_preview)
