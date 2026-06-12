@@ -4,8 +4,6 @@ GAMMA Storyboard Studio
 Create storyboards and generate videos from GAMMA presentations
 """
 
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
 import json
 import os
 import sys
@@ -13,8 +11,16 @@ import time
 import threading
 import subprocess
 from pathlib import Path
-from PIL import Image, ImageTk
-import pygame
+
+try:
+    import tkinter as tk
+    from tkinter import ttk, filedialog, messagebox
+    from PIL import Image, ImageTk
+    import pygame
+    HAS_GUI = True
+except ImportError as e:
+    HAS_GUI = False
+    _import_error = str(e)
 
 
 # ============================================================================
@@ -900,6 +906,12 @@ class StoryboardStudio:
 # ============================================================================
 
 def main():
+    if not HAS_GUI:
+        print(f"Error: {_import_error}")
+        print("This app requires a graphical environment with tkinter.")
+        print("On Windows, tkinter is included with Python by default.")
+        input("Press Enter to exit...")
+        return
     root = tk.Tk()
     app = StoryboardStudio(root)
     root.mainloop()

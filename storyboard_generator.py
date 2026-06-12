@@ -346,12 +346,21 @@ def recalculate_timings(storyboard):
         return storyboard
 
     # Distribute duration proportionally to number of sentences
+    # Empty scenes get a small fixed duration (0.5s for graphic-only slides)
     total_dur = storyboard['audio_duration']
+    empty_dur = 0.5
+    empty_count = sum(1 for s in storyboard['scenes'] if not s['script_sentences'])
+    remaining_dur = total_dur - (empty_count * empty_dur)
+    remaining_dur = max(remaining_dur, 1.0)
+
     cumulative = 0
     for scene in storyboard['scenes']:
-        n = max(len(scene['script_sentences']), 1)
-        proportion = n / max(total_sentences, 1)
-        scene['duration'] = round(total_dur * proportion, 3)
+        n = len(scene['script_sentences'])
+        if n == 0:
+            scene['duration'] = round(empty_dur, 3)
+        else:
+            proportion = n / max(total_sentences, 1)
+            scene['duration'] = round(remaining_dur * proportion, 3)
         scene['start_time'] = round(cumulative, 3)
         cumulative += scene['duration']
         scene['end_time'] = round(cumulative, 3)
