@@ -7,3 +7,6 @@ pygame>=2.5.0
 torch>=2.0.0
 numpy>=1.24.0
 pynput>=1.7.6
+moviepy>=1.0.3
+imageio>=2.9.0
+imageio-ffmpeg>=0.4.0
